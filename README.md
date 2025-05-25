@@ -49,7 +49,7 @@ streamlit run main.py
 
 ## Project Structure
 
-- `main.py` - Application entry point
+- `app.py` - Application entry point
 - `chatbot.py` - Core chatbot logic
 - `voice_input.js` - Voice input/output handling
 - `utils.py` - Utility functions
