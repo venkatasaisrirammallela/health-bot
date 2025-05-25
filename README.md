@@ -51,8 +51,7 @@ streamlit run main.py
 
 - `main.py` - Application entry point
 - `chatbot.py` - Core chatbot logic
-- `voice_handler.py` - Voice input/output handling
-- `ml_diagnosis.py` - ML model for diagnosis
+- `voice_input.js` - Voice input/output handling
 - `utils.py` - Utility functions
 
 ## Dependencies
