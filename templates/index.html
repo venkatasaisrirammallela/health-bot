@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Health Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        .header p {
+            margin: 0.5rem 0 0;
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+        .save-conversation-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .save-button {
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .save-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.2);
+        }
+        .save-button svg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+        .save-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .chat-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            height: calc(100vh - 12rem);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            background-color: #f8fafc;
+        }
+        .message-group {
+            margin-bottom: 1.5rem;
+        }
+        .message {
+            padding: 1rem 1.25rem;
+            border-radius: 1rem;
+            max-width: 85%;
+            margin: 0.25rem 0;
+            line-height: 1.5;
+            font-size: 0.95rem;
+            position: relative;
+        }
+        .user-message {
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            margin-left: auto;
+            color: #0c4a6e;
+            border-bottom-right-radius: 0.25rem;
+        }
+        .bot-message {
+            background: white;
+            margin-right: auto;
+            color: #1e293b;
+            border: 1px solid #e2e8f0;
+            border-bottom-left-radius: 0.25rem;
+        }
+        .bot-message .message-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            position: relative;
+        }
+        .bot-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+        .speaker-button {
+            margin-left: 0.5rem;
+            padding: 0.5rem;
+            color: #0284c7;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 50%;
+            background-color: #f0f9ff;
+            border: 2px solid #e0f2fe;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(2, 132, 199, 0.1);
+            align-self: flex-end;
+            margin-bottom: 0.25rem;
+        }
+        .speaker-button:hover {
+            color: #0369a1;
+            background-color: #e0f2fe;
+            transform: scale(1.05);
+            box-shadow: 0 4px 6px rgba(2, 132, 199, 0.15);
+        }
+        .speaker-button.speaking {
+            color: #0369a1;
+            background-color: #e0f2fe;
+            border-color: #0284c7;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { 
+                transform: scale(1);
+                box-shadow: 0 2px 4px rgba(2, 132, 199, 0.1);
+            }
+            50% { 
+                transform: scale(1.05);
+                box-shadow: 0 4px 8px rgba(2, 132, 199, 0.2);
+            }
+            100% { 
+                transform: scale(1);
+                box-shadow: 0 2px 4px rgba(2, 132, 199, 0.1);
+            }
+        }
+        .input-container {
+            background: white;
+            padding: 1.25rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        .input-form {
+            display: flex;
+            gap: 0.75rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .message-input {
+            flex: 1;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.75rem;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            background-color: #f8fafc;
+        }
+        .message-input:focus {
+            outline: none;
+            border-color: #0284c7;
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+        }
+        .send-button {
+            padding: 0.875rem 1.5rem;
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .send-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.2);
+        }
+        .send-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .typing-indicator {
+            display: none;
+            padding: 0.75rem 1.25rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            margin: 0.5rem 0;
+            width: fit-content;
+        }
+        .typing-indicator.visible {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #0284c7;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-4px); }
+        }
+        .disclaimer {
+            text-align: center;
+            color: #64748b;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+            padding: 0 1rem;
+        }
+        .disclaimer a {
+            color: #0284c7;
+            text-decoration: underline;
+        }
+        .disclaimer a:hover {
+            color: #0369a1;
+        }
+        .message pre {
+            background-color: #f1f5f9;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin: 0.5rem 0;
+            font-size: 0.9em;
+        }
+        .message code {
+            background-color: #f1f5f9;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        .message ul, .message ol {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+        .message li {
+            margin: 0.25rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Medical Health Assistant</h1>
+        <p>Your AI-powered health information guide</p>
+    </div>
+
+    <div class="chat-container">
+        <div class="save-conversation-container" id="saveConversationContainer" style="display: none;">
+            <button onclick="saveConversation('csv')" class="save-button" id="saveCsvButton" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Save as CSV
+            </button>
+            <button onclick="saveConversation('json')" class="save-button" id="saveJsonButton" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Save as JSON
+            </button>
+        </div>
+
+        <div id="chatMessages" class="chat-messages">
+            <!-- Initial welcome message -->
+            <div class="message-group">
+                <div class="message bot-message">
+                    <div class="message-content">
+                        <div class="bot-avatar">MD</div>
+                        <div>
+                            Hello! I'm your medical health assistant. I can help you with:
+                            <ul>
+                                <li>General health information</li>
+                                <li>Understanding symptoms</li>
+                                <li>Basic medical advice</li>
+                                <li>Health-related questions</li>
+                            </ul>
+                            Please note that I'm not a replacement for professional medical advice. Always consult with healthcare professionals for medical decisions.
+                            <br><br>
+                            How can I help you today?
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="bot-avatar">MD</div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+        </div>
+
+        <div class="input-container">
+            <form id="chatForm" class="input-form" onsubmit="handleSubmit(event)">
+                <input 
+                    type="text" 
+                    id="messageInput" 
+                    class="message-input" 
+                    placeholder="Type your health question here..."
+                    autocomplete="off"
+                >
+                <button type="submit" class="send-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                    </svg>
+                    Send
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="disclaimer">
+        This is an AI assistant for general health information only. Not a substitute for professional medical advice, diagnosis, or treatment. 
+        Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.
+    </div>
+
+    <script>
+        // Track conversation state
+        let conversationCount = 0;
+        const MAX_FOLLOWUPS = 3;
+        let conversationHistory = [];
+        let lastTopics = new Set();
+        let isAgeVerified = false;
+        let recognition = null;
+
+        // Extract topics from response
+        function extractTopics(text) {
+            const topics = new Set();
+            // Look for section headers and key medical terms
+            const headers = text.match(/\*\*[^*]+\*\*:/g) || [];
+            headers.forEach(header => {
+                topics.add(header.replace(/\*\*/g, '').replace(':', '').trim());
+            });
+            return topics;
+        }
+
+        // Generate relevant follow-up question
+        function generateFollowUpQuestion() {
+            const botResponses = conversationHistory
+                .filter(msg => msg.role === 'bot')
+                .map(msg => msg.content);
+
+            // Extract topics from all bot responses
+            const allTopics = new Set();
+            botResponses.forEach(response => {
+                const topics = extractTopics(response);
+                topics.forEach(topic => allTopics.add(topic));
+            });
+
+            // Generate question based on the most recent topics
+            const recentTopics = Array.from(allTopics);
+            if (recentTopics.length === 0) return null;
+
+            const followUpQuestions = {
+                'Clear Information': 'Would you like more specific details about any of these symptoms?',
+                'When to Seek Medical Attention': 'Do you have any questions about when to seek emergency care?',
+                'General Wellness Advice': 'Would you like more information about implementing these lifestyle changes?',
+                'Recommended Next Steps': 'Do you need clarification on any of these next steps?',
+                'Treatment Options': 'Would you like to know more about any of these treatment options?',
+                'Prevention Tips': 'Do you have questions about implementing these prevention strategies?',
+                'Risk Factors': 'Would you like to discuss ways to manage these risk factors?',
+                'Recovery Process': 'Do you need more information about the recovery timeline?'
+            };
+
+            // Find the most relevant question based on recent topics
+            for (const topic of recentTopics) {
+                if (followUpQuestions[topic]) {
+                    return followUpQuestions[topic];
+                }
+            }
+
+            // Default follow-up questions if no specific topic is found
+            const defaultQuestions = [
+                "Would you like more information about any aspect of what we discussed?",
+                "Do you have any other questions about this topic?",
+                "Is there anything specific you'd like me to clarify?"
+            ];
+            return defaultQuestions[Math.floor(Math.random() * defaultQuestions.length)];
+        }
+
+        // Store conversation messages
+        function storeMessage(role, content) {
+            conversationHistory.push({ role, content });
+            if (conversationHistory.length > 0) {
+                document.getElementById('saveConversationContainer').style.display = 'flex';
+                document.getElementById('saveCsvButton').disabled = false;
+                document.getElementById('saveJsonButton').disabled = false;
+            }
+        }
+
+        // Show typing indicator
+        function showTypingIndicator() {
+            document.getElementById('typingIndicator').classList.add('visible');
+        }
+
+        // Hide typing indicator
+        function removeTypingIndicator() {
+            document.getElementById('typingIndicator').classList.remove('visible');
+        }
+
+        // Add message to chat
+        function addMessage(role, content) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageGroup = document.createElement('div');
+            messageGroup.className = 'message-group';
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}-message`;
+            
+            if (role === 'bot') {
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+                
+                const avatar = document.createElement('div');
+                avatar.className = 'bot-avatar';
+                avatar.textContent = 'MD';
+                
+                const contentWrapper = document.createElement('div');
+                contentWrapper.style.display = 'flex';
+                contentWrapper.style.flexDirection = 'column';
+                contentWrapper.style.width = '100%';
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.innerHTML = content;
+
+                // Add speaker button for text-to-speech
+                const speakerButton = document.createElement('button');
+                speakerButton.className = 'speaker-button';
+                speakerButton.title = 'Click to hear this message';
+                speakerButton.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15.536a5 5 0 001.414 1.414m2.828-9.9a9 9 0 012.728-2.728" />
+                    </svg>
+                `;
+
+                // Add click handler for text-to-speech
+                let speechSynthesis = window.speechSynthesis;
+                let currentUtterance = null;
+
+                speakerButton.onclick = function() {
+                    if (speakerButton.classList.contains('speaking')) {
+                        // Stop speaking
+                        speechSynthesis.cancel();
+                        speakerButton.classList.remove('speaking');
+                        speakerButton.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15.536a5 5 0 001.414 1.414m2.828-9.9a9 9 0 012.728-2.728" />
+                            </svg>
+                        `;
+                        speakerButton.title = 'Click to hear this message';
+                    } else {
+                        // Stop any ongoing speech
+                        speechSynthesis.cancel();
+                        
+                        // Remove speaking state from all other speaker buttons
+                        document.querySelectorAll('.speaker-button.speaking').forEach(btn => {
+                            btn.classList.remove('speaking');
+                            btn.innerHTML = `
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15.536a5 5 0 001.414 1.414m2.828-9.9a9 9 0 012.728-2.728" />
+                                </svg>
+                            `;
+                            btn.title = 'Click to hear this message';
+                        });
+
+                        // Start speaking
+                        const text = contentDiv.textContent;
+                        currentUtterance = new SpeechSynthesisUtterance(text);
+                        currentUtterance.rate = 1.0;
+                        currentUtterance.pitch = 1.0;
+                        currentUtterance.volume = 1.0;
+
+                        // Update button state when speech starts
+                        currentUtterance.onstart = () => {
+                            speakerButton.classList.add('speaking');
+                            speakerButton.innerHTML = `
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15.536a5 5 0 001.414 1.414m2.828-9.9a9 9 0 012.728-2.728M5.586 15.536a5 5 0 001.414 1.414m2.828-9.9a9 9 0 012.728-2.728" />
+                                </svg>
+                            `;
+                            speakerButton.title = 'Click to stop speaking';
+                        };
+
+                        // Update button state when speech ends
+                        currentUtterance.onend = () => {
+                            speakerButton.classList.remove('speaking');
+                            speakerButton.innerHTML = `
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15.536a5 5 0 001.414 1.414m2.828-9.9a9 9 0 012.728-2.728" />
+                                </svg>
+                            `;
+                            speakerButton.title = 'Click to hear this message';
+                        };
+
+                        speechSynthesis.speak(currentUtterance);
+                    }
+                };
+                
+                contentWrapper.appendChild(contentDiv);
+                contentWrapper.appendChild(speakerButton);
+                messageContent.appendChild(avatar);
+                messageContent.appendChild(contentWrapper);
+                messageDiv.appendChild(messageContent);
+            } else {
+                messageDiv.textContent = content;
+            }
+            
+            // Store message in conversation history
+            storeMessage(role, content);
+            
+            messageGroup.appendChild(messageDiv);
+            chatMessages.appendChild(messageGroup);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Initialize speech recognition
+        function initSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'en-US';
+
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    const input = document.getElementById('messageInput');
+                    input.value = transcript;
+                    // Focus the input and place cursor at the end
+                    input.focus();
+                    input.setSelectionRange(transcript.length, transcript.length);
+                };
+
+                recognition.onerror = function(event) {
+                    console.error('Speech recognition error:', event.error);
+                    removeTypingIndicator();
+                    const micButton = document.getElementById('micButton');
+                    micButton.classList.remove('recording');
+                };
+
+                recognition.onend = function() {
+                    const micButton = document.getElementById('micButton');
+                    micButton.classList.remove('recording');
+                };
+            }
+        }
+
+        // Show age verification modal
+        function showAgeVerification() {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
+                    <h2 class="text-xl font-semibold mb-4">Age Verification</h2>
+                    <p class="mb-4">Please enter your age to continue:</p>
+                    <input type="number" id="ageInput" class="w-full p-2 border rounded mb-4" min="1" max="120" placeholder="Enter your age">
+                    <div class="flex justify-end gap-2">
+                        <button onclick="verifyAge()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Continue</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            document.getElementById('ageInput').focus();
+        }
+
+        // Verify age
+        function verifyAge() {
+            const age = parseInt(document.getElementById('ageInput').value);
+            if (age && age >= 18) {
+                isAgeVerified = true;
+                document.querySelector('.fixed').remove();
+                document.getElementById('messageInput').focus();
+            } else {
+                alert('You must be 18 or older to use this service.');
+                window.location.href = 'https://www.google.com';
+            }
+        }
+
+        // Toggle microphone
+        function toggleMicrophone() {
+            if (!recognition) {
+                initSpeechRecognition();
+            }
+            
+            const micButton = document.getElementById('micButton');
+            const input = document.getElementById('messageInput');
+            
+            if (micButton.classList.contains('recording')) {
+                recognition.stop();
+            } else {
+                // Clear any existing text when starting new recording
+                input.value = '';
+                micButton.classList.add('recording');
+                recognition.start();
+            }
+        }
+
+        // Function to format date for filename
+        function getFormattedDate() {
+            const now = new Date();
+            return now.toISOString().slice(0, 19).replace(/[:]/g, '-');
+        }
+
+        // Function to save conversation
+        function saveConversation(format) {
+            if (conversationHistory.length === 0) {
+                alert('No conversation to save!');
+                return;
+            }
+
+            // Disable buttons while saving
+            document.getElementById('saveCsvButton').disabled = true;
+            document.getElementById('saveJsonButton').disabled = true;
+
+            const timestamp = getFormattedDate();
+            let content, filename, mimeType;
+
+            try {
+                if (format === 'csv') {
+                    // Convert conversation to CSV format
+                    const headers = ['Timestamp', 'Role', 'Message'];
+                    const rows = conversationHistory.map(msg => [
+                        new Date().toISOString(),
+                        msg.role,
+                        msg.content.replace(/[\n\r]/g, ' ') // Remove newlines for CSV
+                    ]);
+                    
+                    content = [
+                        headers.join(','),
+                        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+                    ].join('\n');
+                    
+                    filename = `healthbot_conversation_${timestamp}.csv`;
+                    mimeType = 'text/csv';
+                } else {
+                    // Convert conversation to JSON format
+                    const conversationData = {
+                        timestamp: timestamp,
+                        conversation: conversationHistory,
+                        metadata: {
+                            totalMessages: conversationHistory.length,
+                            userMessages: conversationHistory.filter(msg => msg.role === 'user').length,
+                            botMessages: conversationHistory.filter(msg => msg.role === 'bot').length
+                        }
+                    };
+                    
+                    content = JSON.stringify(conversationData, null, 2);
+                    filename = `healthbot_conversation_${timestamp}.json`;
+                    mimeType = 'application/json';
+                }
+
+                // Create and trigger download
+                const blob = new Blob([content], { type: mimeType });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } finally {
+                // Re-enable buttons after saving
+                document.getElementById('saveCsvButton').disabled = false;
+                document.getElementById('saveJsonButton').disabled = false;
+            }
+        }
+
+        // Handle form submission
+        async function handleSubmit(event) {
+            event.preventDefault();
+            
+            if (!isAgeVerified) {
+                showAgeVerification();
+                return;
+            }
+
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                // Clear input
+                input.value = '';
+                
+                // Show user message
+                addMessage('user', message);
+                
+                // Show typing indicator
+                showTypingIndicator();
+                
+                try {
+                    const response = await fetch('/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message }),
+                    });
+
+                    const data = await response.json();
+                    
+                    // Hide typing indicator
+                    removeTypingIndicator();
+                    
+                    if (response.ok) {
+                        // Add bot response
+                        if (data.messages && data.messages.length > 1) {
+                            addMessage('bot', data.messages[1].content);
+                            conversationCount++;
+                            
+                            // Update topics from the response
+                            const topics = extractTopics(data.messages[1].content);
+                            topics.forEach(topic => lastTopics.add(topic));
+
+                            // Update save buttons
+                            if (conversationHistory.length > 0) {
+                                document.getElementById('saveConversationContainer').style.display = 'flex';
+                                document.getElementById('saveCsvButton').disabled = false;
+                                document.getElementById('saveJsonButton').disabled = false;
+                            }
+
+                            // Add follow-up question only if we haven't reached the limit
+                            if (conversationCount < MAX_FOLLOWUPS) {
+                                const followUpQuestion = data.followup_question || generateFollowUpQuestion();
+                                
+                                // Add a small delay before showing the follow-up question
+                                setTimeout(() => {
+                                    showTypingIndicator();
+                                    setTimeout(() => {
+                                        removeTypingIndicator();
+                                        if (followUpQuestion) {
+                                            addMessage('bot', followUpQuestion);
+                                        }
+                                    }, 1000);
+                                }, 1000);
+                            }
+                        }
+                    } else {
+                        addMessage('bot', 'I apologize, but I encountered an error. Please try again or rephrase your question.');
+                        console.error('Error:', data.error);
+                    }
+                } catch (error) {
+                    removeTypingIndicator();
+                    addMessage('bot', 'I apologize, but I encountered an error. Please try again or rephrase your question.');
+                    console.error('Error:', error);
+                }
+            }
+        }
+
+        // Add microphone button to the input form
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputForm = document.querySelector('.input-form');
+            const micButton = document.createElement('button');
+            micButton.type = 'button';
+            micButton.id = 'micButton';
+            micButton.className = 'p-2 text-gray-600 hover:text-blue-600 transition-colors';
+            micButton.title = 'Click to start voice input';
+            micButton.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+            `;
+            micButton.onclick = toggleMicrophone;
+            inputForm.insertBefore(micButton, inputForm.firstChild);
+
+            // Add styles for recording state and input
+            const style = document.createElement('style');
+            style.textContent = `
+                #micButton.recording {
+                    color: #dc2626;
+                    animation: pulse 1.5s infinite;
+                }
+                @keyframes pulse {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.1); }
+                    100% { transform: scale(1); }
+                }
+                .message-input:focus {
+                    outline: none;
+                    border-color: #0284c7;
+                    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+                }
+                .message-input::placeholder {
+                    color: #94a3b8;
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Show age verification on page load
+            showAgeVerification();
+        });
+    </script>
+</body>
+</html> 
