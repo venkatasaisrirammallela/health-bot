@@ -7,7 +7,6 @@ An intelligent health chatbot that combines voice interaction, AI-powered diagno
 - 🤖 AI-powered health consultation using Google Gemini
 - 🎤 Voice input and output capabilities
 - 🔍 Symptom-based triage and dynamic questioning
-- 🧠 ML-based preliminary diagnosis
 - 🎯 Age verification and input validation
 - 💬 Context-aware conversation handling
 
